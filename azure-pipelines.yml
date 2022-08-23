@@ -11,6 +11,7 @@ pool:
 
 variables:
   solution: '**/*.sln'
+  project: '**/ModernWpf.Toolkit.UI.Controls.Markdown.csproj'  
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
 
@@ -31,3 +32,15 @@ steps:
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+
+- task: DotNetCoreCLI@2
+  displayName: package NugetPackage
+  inputs:
+    command: 'pack'
+    packagesToPack: '$(project)'
+    configuration: '$(buildConfiguration)'
+    packDirectory: '$(Build.ArtifactStagingDirectory)'
+    nobuild: true
+    versioningScheme: 'byBuildNumber'
+    
+    
