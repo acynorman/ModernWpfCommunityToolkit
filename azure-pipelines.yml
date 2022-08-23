@@ -1,33 +1,57 @@
-# .NET Desktop
-# Build and run tests for .NET Desktop or Windows classic desktop solutions.
-# Add steps that publish symbols, save build artifacts, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
+# ASP.NET Core
+# Build and test ASP.NET Core projects targeting .NET Core.
+# Add steps that run tests, create a NuGet package, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
-trigger:
-- main
-
-pool:
-  vmImage: 'windows-latest'
+name: $(BuildDefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)_$(Rev:rrrr)
 
 variables:
-  solution: '**/*.sln'
-  buildPlatform: 'Any CPU'
-  buildConfiguration: 'Release'
+  - group: Docker Maverick
+  - name: buildConfiguration
+    value: 'Release'
+  - name: netcoreSdkVersion
+    value: '3.1.x'
+  - name: buildRevision
+    value: $[counter(format('{0}-{1}', variables['Build.Repository.Name'], variables['Build.SourceBranchName']), 1)]
+  - name: projectLocation
+    value: .
+  - name: projectFile
+    value: ModernWpf Community Toolkit.sln
 
-steps:
-- task: NuGetToolInstaller@1
+trigger:
+  branches:
+    include:
+      - master
+      - develop
+  paths:
+    exclude:
+      - azure-pipelines.yml
 
-- task: NuGetCommand@2
-  inputs:
-    restoreSolution: '$(solution)'
+resources:
+  repositories:
+    - repository: templates
+      type: git
+      name: A365/PipelineTemplates
+      ref:  'refs/heads/master'
 
-- task: VSBuild@1
-  inputs:
-    solution: '$(solution)'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+stages:
+  - stage: Build
+    jobs:
+      - job: Application
+        pool: 'A365VSTS'
+        steps:
+        # make sure to use the proper SDK
+        - task: UseDotNet@2
+          displayName: 'use DotnetCore-SDK "$(netcoreSdkVersion)"'
+          inputs:
+            packageType: 'sdk'
+            version: '$(netcoreSdkVersion)'        
 
-- task: VSTest@2
-  inputs:
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+        # build nuget package of Document.Utilities
+        - template: build-nuget.yaml@templates
+          parameters:
+            projectLocation: $(projectLocation)
+            projectFile: $(projectFile)
+            reusePreviousGeneratedVersion: false
+            executeTests: true
+            pushPackages: true
