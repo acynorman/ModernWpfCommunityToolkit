@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using ModernWpf.Toolkit.UI.Controls.Markdown.Render;
 using ModernWpf.Toolkit.UI.Extensions;
 using System.Windows;
@@ -14,17 +15,17 @@ namespace ModernWpf.Toolkit.UI.Controls
     /// </summary>
     public partial class MarkdownTextBlock : Control, ILinkRegister, IImageResolver, ICodeBlockResolver, IEmojiInlineResolver
     {
-        private long _fontSizePropertyToken;
-        private long _flowDirectionPropertyToken;
-        private long _backgroundPropertyToken;
-        private long _borderBrushPropertyToken;
-        private long _borderThicknessPropertyToken;
-        private long _fontFamilyPropertyToken;
-        private long _fontStretchPropertyToken;
-        private long _fontStylePropertyToken;
-        private long _fontWeightPropertyToken;
-        private long _foregroundPropertyToken;
-        private long _paddingPropertyToken;
+        private Guid _fontSizePropertyToken;
+        private Guid _flowDirectionPropertyToken;
+        private Guid _backgroundPropertyToken;
+        private Guid _borderBrushPropertyToken;
+        private Guid _borderThicknessPropertyToken;
+        private Guid _fontFamilyPropertyToken;
+        private Guid _fontStretchPropertyToken;
+        private Guid _fontStylePropertyToken;
+        private Guid _fontWeightPropertyToken;
+        private Guid _foregroundPropertyToken;
+        private Guid _paddingPropertyToken;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MarkdownTextBlock"/> class.

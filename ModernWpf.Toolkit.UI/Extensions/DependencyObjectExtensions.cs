@@ -7,11 +7,11 @@ namespace ModernWpf.Toolkit.UI.Extensions
 {
     public static class DependencyObjectExtensions
     {
-        private static Dictionary<long, (DependencyPropertyDescriptor Descriptor, EventHandler Handler)> descriptors = new Dictionary<long, (DependencyPropertyDescriptor Descriptor, EventHandler Handler)>();
+        private static Dictionary<Guid, (DependencyPropertyDescriptor Descriptor, EventHandler Handler)> descriptors = new Dictionary<Guid, (DependencyPropertyDescriptor Descriptor, EventHandler Handler)>();
 
-        public static long RegisterPropertyChangedCallback(this DependencyObject dependencyObject, DependencyProperty dependencyProperty, DependencyPropertyChangedCallback callback)
+        public static Guid RegisterPropertyChangedCallback(this DependencyObject dependencyObject, DependencyProperty dependencyProperty, DependencyPropertyChangedCallback callback)
         {
-            long token = descriptors.Count + 1;
+            Guid token = Guid.NewGuid();
             var descriptor = DependencyPropertyDescriptor.FromProperty(dependencyProperty, dependencyObject.GetType());
             EventHandler handler = (s, e) =>
             {
@@ -24,7 +24,7 @@ namespace ModernWpf.Toolkit.UI.Extensions
             return token;
         }
 
-        public static void UnregisterPropertyChangedCallback(this DependencyObject dependencyObject, DependencyProperty dependencyProperty, long token)
+        public static void UnregisterPropertyChangedCallback(this DependencyObject dependencyObject, DependencyProperty dependencyProperty, Guid token)
         {
             if (descriptors.TryGetValue(token, out (DependencyPropertyDescriptor Descriptor, EventHandler Handler) value))
             {
