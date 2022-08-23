@@ -11,7 +11,6 @@ pool:
 
 variables:
   solution: '**/*.sln'
-  project: '**/ModernWpf.Toolkit.UI.Controls.Markdown.csproj'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
 
@@ -32,23 +31,3 @@ steps:
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
-
-
-- task: DotNetCoreCLI@2
-  displayName: package NugetPackage
-  inputs:
-    command: 'pack'
-    packagesToPack: '$(project)'
-    configuration: '$(BuildConfiguration)'
-    packDirectory: '$(Build.ArtifactStagingDirectory)'
-    nobuild: true
-    versioningScheme: 'byBuildNumber'
-    
-- task: DotNetCoreCLI@2
-  displayName: push NugetPackages
-  condition: and(succeeded(), and(not(endsWith(variables['Build.BuildNumber'], 'DRAFT')), ne(variables['Build.Reason'], 'PullRequest')))
-  inputs:
-    command: 'push'
-    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
-    nuGetFeedType: 'internal'
-    publishVstsFeed: '$(nugetFeed)'
