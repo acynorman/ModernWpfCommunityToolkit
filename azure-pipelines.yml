@@ -37,7 +37,10 @@ steps:
   inputs:
     command: 'pack'
     packagesToPack: '$(project)'
-    versioningScheme: 'byBuildNumber'
+    versioningScheme: 'byPrereleaseNumber'
+    majorVersion: '1'
+    minorVersion: '0'
+    patchVersion: '0'
 
 - task: NuGetCommand@2
   inputs:
