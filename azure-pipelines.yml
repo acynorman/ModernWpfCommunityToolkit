@@ -1,57 +1,54 @@
-# ASP.NET Core
-# Build and test ASP.NET Core projects targeting .NET Core.
-# Add steps that run tests, create a NuGet package, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
-
-name: $(BuildDefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)_$(Rev:rrrr)
-
-variables:
-  - group: Docker Maverick
-  - name: buildConfiguration
-    value: 'Release'
-  - name: netcoreSdkVersion
-    value: '3.1.x'
-  - name: buildRevision
-    value: $[counter(format('{0}-{1}', variables['Build.Repository.Name'], variables['Build.SourceBranchName']), 1)]
-  - name: projectLocation
-    value: .
-  - name: projectFile
-    value: ModernWpf Community Toolkit.sln
+# .NET Desktop
+# Build and run tests for .NET Desktop or Windows classic desktop solutions.
+# Add steps that publish symbols, save build artifacts, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
 
 trigger:
-  branches:
-    include:
-      - master
-      - develop
-  paths:
-    exclude:
-      - azure-pipelines.yml
+- main
 
-resources:
-  repositories:
-    - repository: templates
-      type: git
-      name: A365/PipelineTemplates
-      ref:  'refs/heads/master'
+pool:
+  vmImage: 'windows-latest'
 
-stages:
-  - stage: Build
-    jobs:
-      - job: Application
-        pool: 'A365VSTS'
-        steps:
-        # make sure to use the proper SDK
-        - task: UseDotNet@2
-          displayName: 'use DotnetCore-SDK "$(netcoreSdkVersion)"'
-          inputs:
-            packageType: 'sdk'
-            version: '$(netcoreSdkVersion)'        
+variables:
+  solution: '**/*.sln'
+  project: '**/ModernWpf.Toolkit.UI.Controls.Markdown.csproj'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
 
-        # build nuget package of Document.Utilities
-        - template: build-nuget.yaml@templates
-          parameters:
-            projectLocation: $(projectLocation)
-            projectFile: $(projectFile)
-            reusePreviousGeneratedVersion: false
-            executeTests: true
-            pushPackages: true
+steps:
+- task: NuGetToolInstaller@1
+
+- task: NuGetCommand@2
+  inputs:
+    restoreSolution: '$(solution)'
+
+- task: VSBuild@1
+  inputs:
+    solution: '$(solution)'
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+
+- task: VSTest@2
+  inputs:
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+
+
+- task: DotNetCoreCLI@2
+  displayName: package NugetPackage
+  inputs:
+    command: 'pack'
+    packagesToPack: '$(project)'
+    configuration: '$(BuildConfiguration)'
+    packDirectory: '$(Build.ArtifactStagingDirectory)'
+    nobuild: true
+    versioningScheme: 'byBuildNumber'
+    
+- task: DotNetCoreCLI@2
+  displayName: push NugetPackages
+  condition: and(succeeded(), and(not(endsWith(variables['Build.BuildNumber'], 'DRAFT')), ne(variables['Build.Reason'], 'PullRequest')))
+  inputs:
+    command: 'push'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+    nuGetFeedType: 'internal'
+    publishVstsFeed: '$(nugetFeed)'
