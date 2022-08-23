@@ -33,14 +33,15 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
-- task: DotNetCoreCLI@2
-  displayName: package NugetPackage
+- task: NuGetCommand@2
   inputs:
     command: 'pack'
     packagesToPack: '$(project)'
-    configuration: '$(buildConfiguration)'
-    packDirectory: '$(Build.ArtifactStagingDirectory)'
-    nobuild: true
     versioningScheme: 'byBuildNumber'
-    
-    
+
+- task: NuGetCommand@2
+  inputs:
+    command: 'push'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+    nuGetFeedType: 'internal'
+    publishVstsFeed: '$(nugetFeed)'
