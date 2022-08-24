@@ -11,7 +11,7 @@ pool:
 
 variables:
   solution: '**/*.sln'
-  project: 'ModernWpf.Toolkit.UI.Controls.Markdown/*.csproj'  
+  project: '**/ModernWpf.Toolkit.UI.Controls.Markdown.csproj'  
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
 
@@ -34,15 +34,18 @@ steps:
     configuration: '$(buildConfiguration)'
 
 - task: NuGetCommand@2
+  displayName: NuGet pack
   inputs:
     command: 'pack'
-    packagesToPack: '../../$(project)'
+    packagesToPack: '$(project)'
+    packDestination: '$(Build.ArtifactStagingDirectory)'
     versioningScheme: 'byPrereleaseNumber'
     majorVersion: '1'
     minorVersion: '0'
     patchVersion: '0'
 
 - task: NuGetCommand@2
+  displayName: NuGet push
   inputs:
     command: 'push'
     packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
